@@ -566,7 +566,7 @@ extension Collection where Element: Equatable {
     /// - Parameter separator: The element to be split upon.
     /// - Returns: A collection of subsequences, split from this collection's
     /// elements.
-    public func split<S: Sequence>(by separator: S) -> some Collection<SubSequence>
+    public func split<S: Sequence>(separator: S) -> some Collection<SubSequence>
         where S.Element == Element
 }
 
@@ -576,7 +576,7 @@ extension BidirectionalCollection where SubSequence == Substring {
     /// - Parameter separator: A regex describing elements to be split upon.
     /// - Returns: A collection of substrings, split from this collection's
     /// elements.
-    public func split<R: RegexComponent>(by separator: R) -> some Collection<Substring>
+    public func split<R: RegexComponent>(separator: R) -> some Collection<Substring>
 }
 ```
 
