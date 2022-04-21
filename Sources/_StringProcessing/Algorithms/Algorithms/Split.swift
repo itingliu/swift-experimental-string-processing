@@ -248,9 +248,14 @@ extension Collection where Element: Equatable {
   /// elements.
   @available(SwiftStdlib 5.7, *)
   public func split<S: Sequence>(
-    by separator: S
+    separator: S,
+    maxSplits: Int = Int.max,
+    omittingEmptySubsequences: Bool = true
   ) -> [SubSequence] where S.Element == Element {
-    Array(split(by: ZSearcher(pattern: Array(separator), by: ==)))
+    Array(split(
+      by: ZSearcher(pattern: Array(separator), by: ==),
+      maxSplits: maxSplits,
+      omittingEmptySubsequences: omittingEmptySubsequences))
   }
 }
 
