@@ -240,6 +240,49 @@ extension Collection where Element: Equatable {
     split(by: ZSearcher(pattern: Array(separator), by: ==))
   }
 
+  func _split<S: Sequence>(
+    separator: S,
+    maxSplits: Int,
+    omittingEmptySubsequences: Bool
+  ) -> [SubSequence] where S.Element == Element {
+
+    if maxSplits == 0 {
+      if !omittingEmptySubsequences {
+        return [self[...]]
+      } else {
+        return []
+      }
+    }
+
+    var result: [SubSequence] = []
+    let searcher = ZSearcher<Self>(pattern: Array(separator), by: ==)
+    let cachedEnd = endIndex
+    var start = startIndex
+    var end = start
+    while end != cachedEnd {
+      if let range = searcher.search(self, in: start..<cachedEnd) {
+        if omittingEmptySubsequences && range.upperBound == range.lowerBound {
+        } else {
+          result.append(self[start..<range.lowerBound])
+          if result.count == maxSplits {
+            break
+          }
+        }
+
+        start = range.upperBound
+        end = index(after: start)
+      } else {
+        break
+      }
+    }
+
+    if start != cachedEnd || !omittingEmptySubsequences {
+      result.append(self[start..<cachedEnd])
+    }
+
+    return result
+  }
+
   // FIXME: Return `some Collection<SubSequence>` for SE-0346
   /// Returns the longest possible subsequences of the collection, in order,
   /// around elements equal to the given separator.
@@ -252,10 +295,12 @@ extension Collection where Element: Equatable {
     maxSplits: Int = Int.max,
     omittingEmptySubsequences: Bool = true
   ) -> [SubSequence] where S.Element == Element {
-    Array(split(
-      by: ZSearcher(pattern: Array(separator), by: ==),
-      maxSplits: maxSplits,
-      omittingEmptySubsequences: omittingEmptySubsequences))
+//    Array(split(
+//      by: ZSearcher(pattern: Array(separator), by: ==),
+//      maxSplits: maxSplits,
+//      omittingEmptySubsequences: omittingEmptySubsequences))
+
+    _split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences)
   }
 }
 
@@ -308,7 +353,7 @@ extension BidirectionalCollection where SubSequence == Substring {
     splitFromBack(by: RegexConsumer(separator))
   }
 
-  // FIXME: Return `some Collection<Substring>` for SE-0346 
+  // FIXME: Return `some Collection<Substring>` for SE-0346
   /// Returns the longest possible subsequences of the collection, in order,
   /// around elements equal to the given separator.
   /// - Parameter separator: A regex describing elements to be split upon.
@@ -319,9 +364,20 @@ extension BidirectionalCollection where SubSequence == Substring {
     maxSplits: Int = Int.max,
     omittingEmptySubsequences: Bool = true
   ) -> [SubSequence] {
-    Array(split(
-      by: RegexConsumer(separator),
-      maxSplits: maxSplits,
-      omittingEmptySubsequences: omittingEmptySubsequences))
+
+    let splits = split(by: RegexConsumer(separator))
+    var result: [SubSequence] = []
+    for s in splits {
+      if result.count == maxSplits {
+        break
+      }
+      if omittingEmptySubsequences && s.isEmpty {
+
+      } else {
+        result.append(s)
+      }
+    }
+
+    return result
   }
 }

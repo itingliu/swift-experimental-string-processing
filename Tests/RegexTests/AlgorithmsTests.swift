@@ -65,20 +65,46 @@ class RegexConsumerTests: XCTestCase {
   func testSplit() {
     func expectSplit(
       _ string: String,
-      _ regex: String,
+      _ r: String,
+      _ maxSplits: Int,
+      _ omittingEmptySubsequences: Bool,
       _ expected: [Substring],
       file: StaticString = #file, line: UInt = #line
     ) {
-      let regex = try! Regex(regex)
-      let actual = Array(string.split(by: regex))
+      let regex = try! Regex(r)
+      let actual = Array(string.split(separator: regex, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences))
+      let chars = Array(string)
+      let actual2 = chars._split(separator: r, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences).map{ Substring($0) }
       XCTAssertEqual(actual, expected, file: file, line: line)
+      XCTAssertEqual(actual2, expected, file: file, line: line)
     }
 
-    expectSplit("", "", ["", ""])
-    expectSplit("", "x", [""])
-    expectSplit("a", "", ["", "a", ""])
-    expectSplit("a", "x", ["a"])
-    expectSplit("a", "a", ["", ""])
+    expectSplit("", "", .max, false, ["", ""])
+    expectSplit("", "x", .max, false, [""])
+    expectSplit("a", "", .max, false, ["", "a", ""])
+    expectSplit("a", "x", .max, false, ["a"])
+    expectSplit("a", "a", .max, false, ["", ""])
+
+    expectSplit("a a", "a", .max, false, ["", " ", ""])
+    expectSplit("a a", " ", .max, false,["a", "a"])
+
+    expectSplit("a a", " ", .max, true, ["a", "a"])
+
+    expectSplit("", "", .max, true, [])
+    expectSplit("", "x", .max, true, [])
+    expectSplit("a", "", .max, true, ["a"])
+    expectSplit("a", "x", .max, true, ["a"])
+    expectSplit("a", "a", .max, true, [])
+    expectSplit("a a", "a", .max, true, [" "])
+
+    print("a".split(omittingEmptySubsequences: true, whereSeparator: { $0 == "a" }))
+
+    print("a a".split(omittingEmptySubsequences: false, whereSeparator: { $0 == "a" }))
+    print("a a".split(omittingEmptySubsequences: false, whereSeparator: { $0 == " " }))
+
+    print("a a".split(omittingEmptySubsequences: true, whereSeparator: { $0 == "a" }))
+    print("a a".split(omittingEmptySubsequences: true, whereSeparator: { $0 == " " }))
+
   }
   
   func testReplace() {
